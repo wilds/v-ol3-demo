@@ -25,6 +25,7 @@ import org.vaadin.addon.vol3.feature.OLGeometry;
 import org.vaadin.addon.vol3.feature.OLLineString;
 import org.vaadin.addon.vol3.feature.OLPoint;
 import org.vaadin.addon.vol3.interaction.*;
+import org.vaadin.addon.vol3.layer.OLHeatmapLayer;
 import org.vaadin.addon.vol3.layer.OLTileLayer;
 import org.vaadin.addon.vol3.layer.OLVectorLayer;
 import org.vaadin.addon.vol3.source.OLMapQuestSource;
@@ -57,6 +58,7 @@ public class OL3Demo extends UI
     private OLTileLayer baseLayer;
     private OLVectorLayer vectorLayer;
     private OLVectorLayer markerLayer;
+    private OLHeatmapLayer heatmapLayer;
 
     @Override
     protected void init(VaadinRequest request) {
@@ -79,10 +81,14 @@ public class OL3Demo extends UI
         vectorLayer=new OLVectorLayer(createVectorSource());
         vectorLayer.setLayerVisible(false);
         map.addLayer(vectorLayer);
-        
+
         markerLayer=new OLVectorLayer(createMarkerSource());
         markerLayer.setLayerVisible(false);
         map.addLayer(markerLayer);
+
+        heatmapLayer = new OLHeatmapLayer(createHeatmapSource());
+        heatmapLayer.setLayerVisible(false);
+        map.addLayer(heatmapLayer);
 
         // create footer controls
         layout.addComponent(createFooterControls());
@@ -121,6 +127,14 @@ public class OL3Demo extends UI
         return source;
     }
 
+    private OLSource createHeatmapSource() {
+        OLVectorSource source = new OLVectorSource();
+        for (int i = 0; i < 1000; ++i) {
+            source.addFeature(createPoint("" + i, Math.random() * 170 - 85, Math.random() * 360 - 180));
+        }
+        return source;
+    }
+
     private void createMapControls(){
         map.setMousePositionControl(new OLMousePositionControl());
         map.getMousePositionControl().projection= Projections.EPSG4326;
@@ -149,7 +163,16 @@ public class OL3Demo extends UI
             }
         });
         controls.addComponent(toggleMarker);
-        
+
+        Button toggleHeatmap=new Button("toggle heatmap layer");
+        toggleHeatmap.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                heatmapLayer.setLayerVisible(!heatmapLayer.isLayerVisible());
+            }
+        });
+        controls.addComponent(toggleHeatmap);
+
         // create button that resets view
         Button resetView=new Button("reset view");
         resetView.addClickListener(new Button.ClickListener() {
@@ -230,6 +253,12 @@ public class OL3Demo extends UI
         style.iconStyle = markerStyle;
         markerFeature.setStyle(style);
         markerFeature.set("name", caption);
+        return markerFeature;
+    }
+
+    public static OLFeature createPoint(String id, double lat, double lon) {
+        OLFeature markerFeature = new OLFeature(id);
+        markerFeature.setGeometry(new OLPoint(lon, lat));
         return markerFeature;
     }
 
